@@ -157,9 +157,7 @@ class PluginInstaller extends LibraryInstaller
 
             $path = $vendorDir . DIRECTORY_SEPARATOR . $package->getPrettyName();
 
-            $version = $package->getPrettyVersion();
-
-            $plugins[$namespace] = array('version' => $version, 'path' => $path, 'location' => 'vendor');
+            $plugins[$namespace] = array('path' => $path, 'location' => 'vendor');
         }
 
         if (is_dir($pluginsDir)) {
@@ -172,22 +170,11 @@ class PluginInstaller extends LibraryInstaller
 
                 $name = $info->getFilename();
 
-                $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
-
-                // Determine the local Package version.
-                $filePath = $path . DIRECTORY_SEPARATOR .'plugin.json';
-
-                if (is_readable($filePath)) {
-                    $properties = json_decode(file_get_contents($filePath), true);
-
-                    $version = $properties['version'];
-                } else {
-                    $version = '0.0.0';
-                }
-
                 $namespace = 'Plugins\\' .$name;
 
-                $plugins[$namespace] = array('version' => $version, 'path' => $path, 'location' => 'local');
+                $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
+
+                $plugins[$namespace] = array('path' => $path, 'location' => 'local');
             }
         }
 
@@ -211,7 +198,6 @@ class PluginInstaller extends LibraryInstaller
 
         foreach ($plugins as $name => $properties) {
             $pluginPath = $properties['path'];
-            $version    = $properties['version'];
             $location   = $properties['location'];
 
             //
@@ -232,9 +218,8 @@ class PluginInstaller extends LibraryInstaller
             $data[] = sprintf(
 "        '%s' => array(
              'path'     => '%s',
-             'version'  => '%s',
              'location' => '%s',
-         )", $name, $pluginPath, $version, $location);
+         )", $name, $pluginPath, $location);
         }
 
         $data = implode(",\n", $data);
@@ -535,16 +520,14 @@ PHP;
 
         foreach ($config['plugins'] as $name => $properties) {
             $pluginPath = $properties['path'];
-            $version    = $properties['version'];
             $location   = $properties['location'];
 
             //
             $data .= sprintf(
 "        '%s' => array(
              'path'     => '%s',
-             'version'  => '%s',
              'location' => '%s',
-         ),", $name, $pluginPath, $version, $location);
+         ),", $name, $pluginPath, $location);
         }
 
         if (! empty($data)) {

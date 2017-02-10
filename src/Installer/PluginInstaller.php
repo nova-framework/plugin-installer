@@ -243,7 +243,7 @@ class PluginInstaller extends LibraryInstaller
 "        '%s' => array(
              'path'     => '%s',
              'location' => '%s',
-             'theme'    => '%s',
+             'theme'    => %s,
          )", $name, $pluginPath, $location, $theme);
         }
 
@@ -554,7 +554,7 @@ PHP;
 "        '%s' => array(
              'path'     => '%s',
              'location' => '%s',
-             'theme'    => '%s',
+             'theme'    => %s,
          ),", $name, $pluginPath, $location, $theme);
         }
 

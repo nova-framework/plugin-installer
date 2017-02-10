@@ -126,7 +126,9 @@ class PluginInstaller extends LibraryInstaller
 
         $pluginsDir = dirname($vendorDir) .DIRECTORY_SEPARATOR .'plugins';
 
-        $plugins = static::determinePlugins($packages, $pluginsDir, $vendorDir);
+        $themesDir = dirname($vendorDir) .DIRECTORY_SEPARATOR .'themes';
+
+        $plugins = static::determinePlugins($packages, $pluginsDir, $themesDir, $vendorDir);
 
         $configFile = static::getConfigFile($vendorDir);
 
@@ -144,12 +146,12 @@ class PluginInstaller extends LibraryInstaller
      * @param string $vendorDir the path to the vendor dir
      * @return array plugin-name indexed paths to plugins
      */
-    public static function determinePlugins($packages, $pluginsDir = 'plugins', $vendorDir = 'vendor')
+    public static function determinePlugins($packages, $pluginsDir = 'plugins', $themesDir = 'themes', $vendorDir = 'vendor')
     {
         $plugins = array();
 
         foreach ($packages as $package) {
-            if ($package->getType() !== 'nova-plugin') {
+            if (($package->getType() !== 'nova-plugin') && ($package->getType() !== 'nova-theme')) {
                 continue;
             }
 
@@ -157,7 +159,9 @@ class PluginInstaller extends LibraryInstaller
 
             $path = $vendorDir . DIRECTORY_SEPARATOR . $package->getPrettyName();
 
-            $plugins[$namespace] = array('path' => $path, 'location' => 'vendor');
+            $isTheme = ($package->getType() === 'nova-theme');
+
+            $plugins[$namespace] = array('path' => $path, 'location' => 'vendor', 'theme' => $isTheme);
         }
 
         if (is_dir($pluginsDir)) {
@@ -174,7 +178,25 @@ class PluginInstaller extends LibraryInstaller
 
                 $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
 
-                $plugins[$namespace] = array('path' => $path, 'location' => 'local');
+                $plugins[$namespace] = array('path' => $path, 'location' => 'local', 'theme' => false);
+            }
+        }
+
+        if (is_dir($themesDir)) {
+            $dir = new \DirectoryIterator($themesDir);
+
+            foreach ($dir as $info) {
+                if (! $info->isDir() || $info->isDot()) {
+                    continue;
+                }
+
+                $name = $info->getFilename();
+
+                $namespace = 'Themes\\' .$name;
+
+                $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
+
+                $plugins[$namespace] = array('path' => $path, 'location' => 'local', 'theme' => true);
             }
         }
 
@@ -200,6 +222,8 @@ class PluginInstaller extends LibraryInstaller
             $pluginPath = $properties['path'];
             $location   = $properties['location'];
 
+            $theme = ($properties['theme'] === true) ? 'true' : 'false';
+
             //
             $pluginPath = str_replace(
                 DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR,
@@ -219,7 +243,8 @@ class PluginInstaller extends LibraryInstaller
 "        '%s' => array(
              'path'     => '%s',
              'location' => '%s',
-         )", $name, $pluginPath, $location);
+             'theme'    => '%s',
+         )", $name, $pluginPath, $location, $theme);
         }
 
         $data = implode(",\n", $data);
@@ -342,7 +367,7 @@ PHP;
      */
     public function supports($packageType)
     {
-        return ('nova-plugin' === $packageType);
+        return (('nova-plugin' === $packageType) || ('nova-theme' === $packageType));
     }
 
     /**
@@ -522,12 +547,15 @@ PHP;
             $pluginPath = $properties['path'];
             $location   = $properties['location'];
 
+            $theme = ($properties['theme'] === true) ? 'true' : 'false';
+
             //
             $data .= sprintf(
 "        '%s' => array(
              'path'     => '%s',
              'location' => '%s',
-         ),", $name, $pluginPath, $location);
+             'theme'    => '%s',
+         ),", $name, $pluginPath, $location, $theme);
         }
 
         if (! empty($data)) {

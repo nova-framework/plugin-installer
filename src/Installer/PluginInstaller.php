@@ -1,6 +1,6 @@
 <?php
 
-namespace Nova\Composer\Installer;
+namespace Mini\Composer\Installer;
 
 use Composer\Composer;
 use Composer\Installer\LibraryInstaller;
@@ -63,7 +63,7 @@ class PluginInstaller extends LibraryInstaller
 
         $scripts = $composer->getPackage()->getScripts();
 
-        $postAutoloadDump = 'Nova\Composer\Installer\PluginInstaller::postAutoloadDump';
+        $postAutoloadDump = 'Mini\Composer\Installer\PluginInstaller::postAutoloadDump';
 
         if (! isset($scripts['post-autoload-dump']) || ! in_array($postAutoloadDump, $scripts['post-autoload-dump'])) {
             $this->warnUser(
@@ -126,9 +126,7 @@ class PluginInstaller extends LibraryInstaller
 
         $pluginsDir = dirname($vendorDir) .DIRECTORY_SEPARATOR .'plugins';
 
-        $themesDir = dirname($vendorDir) .DIRECTORY_SEPARATOR .'themes';
-
-        $plugins = static::determinePlugins($packages, $pluginsDir, $themesDir, $vendorDir);
+        $plugins = static::determinePlugins($packages, $pluginsDir, $vendorDir);
 
         $configFile = static::getConfigFile($vendorDir);
 
@@ -146,12 +144,12 @@ class PluginInstaller extends LibraryInstaller
      * @param string $vendorDir the path to the vendor dir
      * @return array plugin-name indexed paths to plugins
      */
-    public static function determinePlugins($packages, $pluginsDir = 'plugins', $themesDir = 'themes', $vendorDir = 'vendor')
+    public static function determinePlugins($packages, $pluginsDir = 'plugins', $vendorDir = 'vendor')
     {
         $plugins = array();
 
         foreach ($packages as $package) {
-            if (($package->getType() !== 'nova-plugin') && ($package->getType() !== 'nova-theme')) {
+            if ($package->getType() !== 'mini-nova-plugin') {
                 continue;
             }
 
@@ -159,9 +157,7 @@ class PluginInstaller extends LibraryInstaller
 
             $path = $vendorDir . DIRECTORY_SEPARATOR . $package->getPrettyName();
 
-            $isTheme = ($package->getType() === 'nova-theme');
-
-            $plugins[$namespace] = array('path' => $path, 'location' => 'vendor', 'theme' => $isTheme);
+            $plugins[$namespace] = array('path' => $path, 'location' => 'vendor');
         }
 
         if (is_dir($pluginsDir)) {
@@ -179,24 +175,6 @@ class PluginInstaller extends LibraryInstaller
                 $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
 
                 $plugins[$namespace] = array('path' => $path, 'location' => 'local', 'theme' => false);
-            }
-        }
-
-        if (is_dir($themesDir)) {
-            $dir = new \DirectoryIterator($themesDir);
-
-            foreach ($dir as $info) {
-                if (! $info->isDir() || $info->isDot()) {
-                    continue;
-                }
-
-                $name = $info->getFilename();
-
-                $namespace = 'Themes\\' .$name;
-
-                $path = $themesDir . DIRECTORY_SEPARATOR . $name;
-
-                $plugins[$namespace] = array('path' => $path, 'location' => 'local', 'theme' => true);
             }
         }
 
@@ -222,8 +200,6 @@ class PluginInstaller extends LibraryInstaller
             $pluginPath = $properties['path'];
             $location   = $properties['location'];
 
-            $theme = ($properties['theme'] === true) ? 'true' : 'false';
-
             //
             $pluginPath = str_replace(
                 DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR,
@@ -243,8 +219,7 @@ class PluginInstaller extends LibraryInstaller
 "        '%s' => array(
              'path'     => '%s',
              'location' => '%s',
-             'theme'    => %s,
-         )", $name, $pluginPath, $location, $theme);
+         )", $name, $pluginPath, $location);
         }
 
         $data = implode(",\n", $data);
@@ -296,7 +271,7 @@ PHP;
      */
     protected static function getConfigFile($vendorDir)
     {
-        return $vendorDir . DIRECTORY_SEPARATOR . 'nova-plugins.php';
+        return $vendorDir . DIRECTORY_SEPARATOR . 'mininova-plugins.php';
     }
 
     /**
@@ -367,7 +342,7 @@ PHP;
      */
     public function supports($packageType)
     {
-        return (('nova-plugin' === $packageType) || ('nova-theme' === $packageType));
+        return ('mini-nova-plugin' === $packageType);
     }
 
     /**
@@ -464,7 +439,7 @@ PHP;
 
         if (! isset($config)) {
             $this->io->write(
-                'ERROR - `vendor/nova-plugins.php` file is invalid. Plugin path configuration not updated.'
+                'ERROR - `vendor/mininova-plugins.php` file is invalid. Plugin path configuration not updated.'
             );
 
             return;
@@ -504,7 +479,7 @@ PHP;
     {
         if (file_exists($path)) {
             if ($this->io->isVerbose()) {
-                $this->io->write('vendor/nova-plugins.php exists.');
+                $this->io->write('vendor/mininova-plugins.php exists.');
             }
 
             return;
@@ -526,7 +501,7 @@ PHP;
         file_put_contents($path, $contents);
 
         if ($this->io->isVerbose()) {
-            $this->io->write('Created vendor/nova-plugins.php');
+            $this->io->write('Created vendor/mininova-plugins.php');
         }
     }
 
@@ -547,15 +522,12 @@ PHP;
             $pluginPath = $properties['path'];
             $location   = $properties['location'];
 
-            $theme = ($properties['theme'] === true) ? 'true' : 'false';
-
             //
             $data .= sprintf(
 "        '%s' => array(
              'path'     => '%s',
              'location' => '%s',
-             'theme'    => %s,
-         ),", $name, $pluginPath, $location, $theme);
+         ),", $name, $pluginPath, $location);
         }
 
         if (! empty($data)) {

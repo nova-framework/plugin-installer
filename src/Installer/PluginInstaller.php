@@ -122,12 +122,15 @@ class PluginInstaller extends LibraryInstaller
 
         $vendorDir = realpath($config->get('vendor-dir'));
 
+        //
         $packages = $composer->getRepositoryManager()->getLocalRepository()->getPackages();
 
+        //
         $pluginsDir = dirname($vendorDir) .DIRECTORY_SEPARATOR .'plugins';
 
         $plugins = static::determinePlugins($packages, $pluginsDir, $vendorDir);
 
+        //
         $configFile = static::getConfigFile($vendorDir);
 
         static::writeConfigFile($configFile, $plugins);
@@ -157,7 +160,7 @@ class PluginInstaller extends LibraryInstaller
 
             $path = $vendorDir . DIRECTORY_SEPARATOR . $package->getPrettyName();
 
-            $plugins[$namespace] = array('path' => $path, 'location' => 'vendor');
+            $plugins[$namespace] = $path;
         }
 
         if (is_dir($pluginsDir)) {
@@ -172,7 +175,7 @@ class PluginInstaller extends LibraryInstaller
 
                 $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
 
-                $plugins[$name] = array('path' => $path, 'location' => 'local');
+                $plugins[$name] = $path;
             }
         }
 
@@ -194,11 +197,7 @@ class PluginInstaller extends LibraryInstaller
 
         $data = array();
 
-        foreach ($plugins as $name => $properties) {
-            $pluginPath = $properties['path'];
-            $location   = $properties['location'];
-
-            //
+        foreach ($plugins as $name => $pluginPath) {
             $pluginPath = str_replace(
                 DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR,
                 DIRECTORY_SEPARATOR,
@@ -213,11 +212,7 @@ class PluginInstaller extends LibraryInstaller
             // Namespaced plugins should use /
             $name = str_replace('\\', '/', $name);
 
-            $data[] = sprintf(
-"        '%s' => array(
-             'path'     => '%s',
-             'location' => '%s',
-         )", $name, $pluginPath, $location);
+            $data[] = sprintf("        '%s' => '%s'", $name, $pluginPath);
         }
 
         $data = implode(",\n", $data);
@@ -419,9 +414,8 @@ PHP;
      *
      * @param string $name The plugin name being installed.
      * @param string $path The path, the plugin is being installed into.
-     * @param string $version The plugin version being installed.
      */
-    public function updateConfig($name, $path, $version = null)
+    public function updateConfig($name, $path)
     {
         $name = str_replace('\\', '/', $name);
 
@@ -450,18 +444,7 @@ PHP;
         if (is_null($path)) {
             unset($config['plugins'][$name]);
         } else {
-            $path = str_replace(
-                DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR,
-                DIRECTORY_SEPARATOR,
-                $path
-            );
-
-            // Normalize to *nix paths.
-            $path = str_replace('\\', '/', $path);
-
-            $path .= '/';
-
-            $config['plugins'][$name] = array('version' => $version, 'path' => $path, 'location' => 'vendor');
+            $config['plugins'][$name] = $path;
         }
 
         $this->writeConfig($configFile, $config);
@@ -508,24 +491,20 @@ PHP;
      *
      * @param string $path The path to write.
      * @param array $config The config data to write.
+     * @param string|null $root The root directory. Defaults to a value generated from $configFile
      * @return void
      */
-    protected function writeConfig($path, $config)
+    protected function writeConfig($path, $config, $root = null)
     {
-        $root = dirname($this->vendorDir);
+        $root = $root ?: dirname($this->vendorDir);
 
         $data = '';
 
-        foreach ($config['plugins'] as $name => $properties) {
+        foreach ($config['plugins'] as $name => $pluginPath) {
             $pluginPath = $properties['path'];
-            $location   = $properties['location'];
 
             //
-            $data .= sprintf(
-"        '%s' => array(
-             'path'     => '%s',
-             'location' => '%s',
-         ),", $name, $pluginPath, $location);
+            $data .= sprintf("        '%s' => '%s'", $name, $pluginPath);
         }
 
         if (! empty($data)) {

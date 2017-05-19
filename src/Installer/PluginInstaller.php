@@ -174,7 +174,7 @@ class PluginInstaller extends LibraryInstaller
 
                 $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
 
-                $plugins[$namespace] = array('path' => $path, 'location' => 'local', 'theme' => false);
+                $plugins[$namespace] = array('path' => $path, 'location' => 'local');
             }
         }
 

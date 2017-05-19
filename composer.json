@@ -20,7 +20,7 @@
         }
     },
     "extra": {
-        "class": "Nova\\Composer\\Installer\\PluginInstaller"
+        "class": "Mini\\Composer\\Installer\\PluginInstaller"
     },
     "minimum-stability": "dev"
 }

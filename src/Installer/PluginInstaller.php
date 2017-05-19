@@ -149,7 +149,7 @@ class PluginInstaller extends LibraryInstaller
         $plugins = array();
 
         foreach ($packages as $package) {
-            if ($package->getType() !== 'mini-nova-plugin') {
+            if ($package->getType() !== 'mininova-plugin') {
                 continue;
             }
 
@@ -342,7 +342,7 @@ PHP;
      */
     public function supports($packageType)
     {
-        return ('mini-nova-plugin' === $packageType);
+        return ('mininova-plugin' === $packageType);
     }
 
     /**

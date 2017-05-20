@@ -287,7 +287,7 @@ PHP;
     {
         $namespace = null;
 
-        $autoLoad = ($package instanceof PackageInterface)
+        $autoLoad = ! is_array($package)
             ? $package->getAutoload()
             : (isset($package['autoload']) ? $package['autoload'] : array());
 
@@ -329,7 +329,7 @@ PHP;
                     "Unable to get primary namespace for package %s." .
                     "\nEnsure you have added proper 'autoload' section to your Plugin's config" .
                     " as stated in README on https://github.com/nova-framework/plugin-installer",
-                    ($package instanceof PackageInterface) ? $package->getName() : $package['name']
+                    ! is_array($package) ? $package->getName() : $package['name']
                 )
             );
         }

@@ -181,6 +181,8 @@ class PluginInstaller extends LibraryInstaller
                 if (is_readable($composerJson)) {
                     $config = json_decode(file_get_contents($composerJson), true);
 
+                    echo var_export($config, true) ."\n\n";
+
                     $name = static::primaryNamespace($config);
                 }
 

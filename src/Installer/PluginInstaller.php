@@ -289,7 +289,7 @@ PHP;
 
         $autoLoad = ($package instanceof PackageInterface)
             ? $package->getAutoload()
-            : (is_array($package) && isset($package['autoload']) ? $package['autoload'] : array());
+            : (isset($package['autoload']) ? $package['autoload'] : array());
 
         foreach ($autoLoad as $type => $pathMap) {
             if ($type !== 'psr-4') {
@@ -329,7 +329,7 @@ PHP;
                     "Unable to get primary namespace for package %s." .
                     "\nEnsure you have added proper 'autoload' section to your Plugin's config" .
                     " as stated in README on https://github.com/nova-framework/plugin-installer",
-                    $package->getName()
+                    ($package instanceof PackageInterface) ? $package->getName() : $package['name']
                 )
             );
         }

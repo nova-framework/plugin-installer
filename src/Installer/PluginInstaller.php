@@ -288,8 +288,8 @@ PHP;
         $namespace = null;
 
         $autoLoad = ($package instanceof PackageInterface)
-			? $package->getAutoload()
-			: (is_array($package) && isset($package['autoload'])) ? $package['autoload'] : array();
+            ? $package->getAutoload()
+            : (is_array($package) && isset($package['autoload']) ? $package['autoload'] : array());
 
         foreach ($autoLoad as $type => $pathMap) {
             if ($type !== 'psr-4') {

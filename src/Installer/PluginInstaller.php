@@ -176,14 +176,12 @@ class PluginInstaller extends LibraryInstaller
                 $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
 
                 //
-                $pluginJson = $path . DIRECTORY_SEPARATOR .'plugin.json';
+                $composerJson = $path . DIRECTORY_SEPARATOR .'composer.json';
 
-                if (is_readable($pluginJson)) {
-                    $config = json_decode(file_get_contents($pluginJson), true);
+                if (is_readable($composerJson)) {
+                    $config = json_decode(file_get_contents($composerJson), true);
 
-                    if (is_array($config)) {
-                        $name = isset($config['package']) ? $config['package'] : $name;
-                    }
+                    $name = static::primaryNamespace($config);
                 }
 
                 $plugins[$name] = $path;
@@ -289,7 +287,9 @@ PHP;
     {
         $namespace = null;
 
-        $autoLoad = $package->getAutoload();
+        $autoLoad = ($package instanceof PackageInterface)
+			? $package->getAutoload()
+			: (is_array($package) && isset($package['autoload'])) ? $package['autoload'] : array();
 
         foreach ($autoLoad as $type => $pathMap) {
             if ($type !== 'psr-4') {

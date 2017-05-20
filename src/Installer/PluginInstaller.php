@@ -178,13 +178,19 @@ class PluginInstaller extends LibraryInstaller
                 //
                 $composerJson = $path . DIRECTORY_SEPARATOR . 'composer.json';
 
+                echo var_export($composerJson, true) ."\n\n";
+
                 if (is_readable($composerJson)) {
                     $config = json_decode(file_get_contents($composerJson), true);
+
+                    echo var_export($config, true) ."\n\n";
 
                     if (is_array($config)) {
                         $name = static::primaryNamespace($config);
                     }
                 }
+
+                echo var_export($name, true) ."\n\n";
 
                 $plugins[$name] = $path;
             }

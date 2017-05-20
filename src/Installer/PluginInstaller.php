@@ -175,6 +175,17 @@ class PluginInstaller extends LibraryInstaller
 
                 $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
 
+                //
+                $pluginJson = $path . DIRECTORY_SEPARATOR .'plugin.json';
+
+                if (is_readable($pluginJson)) {
+                    $config = json_decode(file_get_contents($pluginJson), true);
+
+                    if (is_array($config)) {
+                        $name = isset($config['package']) ? $config['package'] : $name;
+                    }
+                }
+
                 $plugins[$name] = $path;
             }
         }

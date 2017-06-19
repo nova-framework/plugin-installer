@@ -164,29 +164,29 @@ class PluginInstaller extends LibraryInstaller
         }
 
         if (is_dir($pluginsDir)) {
-            $dir = new \DirectoryIterator($pluginsDir);
+            $iterator = new \DirectoryIterator($pluginsDir);
 
-            foreach ($dir as $info) {
+            foreach ($iterator as $info) {
                 if (! $info->isDir() || $info->isDot()) {
                     continue;
                 }
 
-                $name = $info->getFilename();
+                $path = $pluginsDir . DIRECTORY_SEPARATOR . $info->getFilename();
 
-                $path = $pluginsDir . DIRECTORY_SEPARATOR . $name;
-
-                //
+                // Gather the information from the plugin's composer.json
                 $composerJson = $path . DIRECTORY_SEPARATOR . 'composer.json';
 
-                if (is_readable($composerJson)) {
-                    $config = json_decode(file_get_contents($composerJson), true);
-
-                    if (is_array($config)) {
-                        $name = static::primaryNamespace($config);
-                    }
+                if (! is_readable($composerJson)) {
+                    continue;
                 }
 
-                $plugins[$name] = $path;
+                $config = json_decode(file_get_contents($composerJson), true);
+
+                if (is_array($config) && ($config['type'] === 'nova-plugin')) {
+                    $namespace = static::primaryNamespace($config);
+
+                    $plugins[$namespace] = $path;
+                }
             }
         }
 
